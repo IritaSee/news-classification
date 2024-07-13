@@ -33,9 +33,9 @@
                 
                 <label for="content">Konten Berita:</label><br>
                 <textarea id="content" name="content" rows="4" required></textarea><br><br>
-
+<!-- 
                 <label for="content">Sumber Berita:</label><br>
-                <textarea id="source" name="source" rows="4" required></textarea><br><br>
+                <textarea id="source" name="source" rows="4" required></textarea><br><br> -->
 
                 <button type="submit">Cek Sekarang</button>
             </form>
@@ -45,6 +45,7 @@
     <div id="chart">
         <div id="chart-container">
             <canvas id="myChart"></canvas>
+            <canvas id="libChart"></canvas>
         </div>
         <div id="result-text"></div>
     </div>
@@ -56,7 +57,7 @@
             // Get input values
             var title = document.getElementById('title').value;
             var content = document.getElementById('content').value;
-            var source = document.getElementById('source').value;
+            var source = "";
 
             // Prepare data to send
             var data = {
@@ -77,6 +78,8 @@
             .then(data => {
                 value = data.confidence.toFixed(4) * 100;
                 valueNetral = 100 - value;
+                lib_value = data.lib_confidence.toFixed(4) * 100;
+                valueConsv = 100 - lib_value;
 
                 // Display Chart
                 const chart = document.getElementById('myChart').getContext('2d');
@@ -94,7 +97,27 @@
                         plugins: {
                             legend: {
                                 display: true,
-                                position: 'bottom'
+                                // position: 'bottom'
+                            }
+                        }
+                    }
+                });
+
+                const libChart = new Chart(chart, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Gaya Penulisan Konservatif', 'Gaya Penulisan Tajam dan Liberal'],
+                        datasets: [{
+                            data: [valueConsv, lib_value],
+                            backgroundColor: ['#00bfae', '#ff4d4d'],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        plugins: {
+                            legend: {
+                                display: true,
+                                // position: 'bottom'
                             }
                         }
                     }
@@ -103,9 +126,9 @@
                 // Display result
                 var resultDiv = document.getElementById('result-text');
                 if(value > 50){
-                    resultDiv.innerHTML = `<p><strong>${value}% Berita Bias</strong></p>`
+                    resultDiv.innerHTML = `<p><strong>${value}%  Conservative</strong></p>`
                 } else {
-                    resultDiv.innerHTML = `<p><strong>${valueNetral}% Berita Netral</strong></p>`
+                    resultDiv.innerHTML = `<p><strong>${valueNetral}%  Liberalist</strong></p>`
                 }
             })
             .catch(error => {

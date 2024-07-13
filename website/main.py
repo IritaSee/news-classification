@@ -11,9 +11,11 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 
 tokenizer_A3_path = os.path.join(current_dir, 'model', 'tokenizer_A3.pkl')
 tokenizer_bias_path = os.path.join(current_dir, 'model', 'tokenizer_bias.pkl')
+tokenizer_lib_path = os.path.join(current_dir,'model', 'tokenizer_liberalism_conservative_A.pkl')
 
 model_A3_path = os.path.join(current_dir, 'model', 'hoax_detection_A3.tflite')
 model_bias_path = os.path.join(current_dir, 'model', 'bias_detection.tflite')
+model_lib_path = os.path.join(current_dir, 'model', 'liberalism_conservative.tflite')
 
 # Load tokenizer from pickle file
 with open(tokenizer_A3_path, 'rb') as f:
@@ -22,12 +24,18 @@ with open(tokenizer_A3_path, 'rb') as f:
 with open(tokenizer_bias_path, 'rb') as f:
     tokenizer_bias = pickle.load(f)
 
+with open(tokenizer_lib_path, 'rb') as f:
+    tokenizer_lib = pickle.load(f)
+
 # Load TFLite model
 interpreterHoaks = tf.lite.Interpreter(model_path=model_A3_path)
 interpreterHoaks.allocate_tensors()
 
 interpreterBias = tf.lite.Interpreter(model_path=model_bias_path)
 interpreterBias.allocate_tensors()
+
+interpreterLib = tf.lite.Interpreter(model_path=model_lib_path)
+interpreterLib.allocate_tensors()
 
 # Get input and output tensor information
 input_details_hoaks = interpreterHoaks.get_input_details()
@@ -36,15 +44,18 @@ output_details_hoaks = interpreterHoaks.get_output_details()
 input_details_bias = interpreterBias.get_input_details()
 output_details_bias = interpreterBias.get_output_details()
 
+input_details_lib = interpreterLib.get_input_details()
+output_details_lib = interpreterLib.get_output_details()
+
 @app.route('/')
 def index():
     # Render the HTML file
-    return render_template('deteksiHoaks.html')
+    return render_template('deteksiBias.html')
 
-@app.route('/deteksiBias')
+@app.route('/deteksiHoaks')
 def bias():
     # Render the HTML file
-    return render_template('deteksiBias.html')
+    return render_template('deteksiHoaks.html')
 
 @app.route('/predictHoaks', methods=['POST'])
 def predictHoaks():
@@ -112,14 +123,40 @@ def predictBias():
     predictions_tflite = interpreterBias.get_tensor(output_details_bias[0]['index'])
 
     # Interpreting prediction results
-    predicted_labels_tflite = "Bias" if predictions_tflite[0][0] > 0.5 else "Netral"
+    bias_predicted_labels_tflite = "Bias" if predictions_tflite[0][0] > 0.5 else "Netral"
     # confidence = float(predictions_tflite[0][0]) if predicted_labels_tflite == "Hoax" else float(1 - predictions_tflite[0][0])
-    confidence = float(predictions_tflite[0][0])
+    bias_confidence = float(predictions_tflite[0][0])
+    
+    ## conservative vs liberalism
+
+    # Tokenization and padding of news
+    lib_sequences = tokenizer_lib.texts_to_sequences(news_text)
+    # max_len = 30  # Make sure the maximum length matches the one used when training the model
+    lib_padded = pad_sequences(lib_sequences, maxlen=max_len)
+
+    # Convert input data to float32 type
+    lib_padded = lib_padded.astype('float32')
+
+    # Set the input tensor with compacted data
+    interpreterLib.set_tensor(input_details_lib[0]['index'], lib_padded)
+
+    # Run the interpreter to make predictions
+    interpreterLib.invoke()
+
+    # Get the prediction result from the output tensor
+    predictions_lib = interpreterBias.get_tensor(output_details_bias[0]['index'])
+
+    # Interpreting prediction results
+    lib_predicted_labels_tflite = "Liberalism" if predictions_lib[0][0] > 0.5 else "Conservative"
+    # confidence = float(predictions_tflite[0][0]) if predicted_labels_tflite == "Hoax" else float(1 - predictions_tflite[0][0])
+    lib_confidence = float(predictions_lib[0][0])
 
     # Prepare response
     response = {
-        'prediction': predicted_labels_tflite,
-        'confidence': confidence
+        'prediction': bias_predicted_labels_tflite,
+        'confidence': bias_confidence,
+        'lib_prediction': lib_predicted_labels_tflite,
+        'lib_confidence': lib_confidence
     }
 
     return jsonify(response)
