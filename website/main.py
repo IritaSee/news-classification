@@ -15,7 +15,7 @@ tokenizer_lib_path = os.path.join(current_dir,'model', 'tokenizer_liberalism_con
 
 model_A3_path = os.path.join(current_dir, 'model', 'hoax_detection_A3.tflite')
 model_bias_path = os.path.join(current_dir, 'model', 'bias_detection.tflite')
-model_lib_path = os.path.join(current_dir, 'model', 'liberalism_conservative.tflite')
+model_lib_path = os.path.join(current_dir, 'model', 'liberalism_conservative_A.tflite')
 
 # Load tokenizer from pickle file
 with open(tokenizer_A3_path, 'rb') as f:
