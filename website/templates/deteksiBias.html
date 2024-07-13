@@ -17,8 +17,8 @@
         </div>
         <nav>
             <ul>
-                <li><a href="/">Deteksi Hoaks</a></li>
-                <li><a href="/deteksiBias">Deteksi Bias</a></li>
+                <li><a href="deteksiHoaks">Deteksi Hoaks</a></li>
+                <li><a href="/">Deteksi Bias</a></li>
             </ul>
         </nav>
     </header>
@@ -45,9 +45,15 @@
     <div id="chart">
         <div id="chart-container">
             <canvas id="myChart"></canvas>
-            <canvas id="libChart"></canvas>
         </div>
         <div id="result-text"></div>
+    </div>
+
+    <div id="chart">
+        <div id="chart-container">
+            <canvas id="libChart"></canvas>
+        </div>
+        <div id="lib_result-text"></div>
     </div>
 
     <script>
@@ -97,13 +103,13 @@
                         plugins: {
                             legend: {
                                 display: true,
-                                // position: 'bottom'
+                                position: 'bottom'
                             }
                         }
                     }
                 });
-
-                const libChart = new Chart(chart, {
+                const lib_chart = document.getElementById('libChart').getContext('2d');
+                const libChart = new Chart(lib_chart, {
                     type: 'doughnut',
                     data: {
                         labels: ['Gaya Penulisan Konservatif', 'Gaya Penulisan Tajam dan Liberal'],
@@ -117,7 +123,7 @@
                         plugins: {
                             legend: {
                                 display: true,
-                                // position: 'bottom'
+                                position: 'bottom'
                             }
                         }
                     }
@@ -126,9 +132,16 @@
                 // Display result
                 var resultDiv = document.getElementById('result-text');
                 if(value > 50){
-                    resultDiv.innerHTML = `<p><strong>${value}%  Conservative</strong></p>`
+                    resultDiv.innerHTML = `<p><strong>${value}%  Bias</strong></p>`
                 } else {
-                    resultDiv.innerHTML = `<p><strong>${valueNetral}%  Liberalist</strong></p>`
+                    resultDiv.innerHTML = `<p><strong>${valueNetral}%  Netral</strong></p>`
+                }
+
+                var lib_resultDiv = document.getElementById('lib_result-text');
+                if(value > 50){
+                    lib_resultDiv.innerHTML = `<p><strong>${lib_value}%  Liberalist</strong></p>`
+                } else {
+                    lib_resultDiv.innerHTML = `<p><strong>${valueConsv}%  Conservative</strong></p>`
                 }
             })
             .catch(error => {

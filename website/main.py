@@ -131,7 +131,7 @@ def predictBias():
 
     # Tokenization and padding of news
     lib_sequences = tokenizer_lib.texts_to_sequences(news_text)
-    # max_len = 30  # Make sure the maximum length matches the one used when training the model
+    max_len = 100  # Make sure the maximum length matches the one used when training the model
     lib_padded = pad_sequences(lib_sequences, maxlen=max_len)
 
     # Convert input data to float32 type
@@ -144,7 +144,7 @@ def predictBias():
     interpreterLib.invoke()
 
     # Get the prediction result from the output tensor
-    predictions_lib = interpreterBias.get_tensor(output_details_bias[0]['index'])
+    predictions_lib = interpreterLib.get_tensor(output_details_lib[0]['index'])
 
     # Interpreting prediction results
     lib_predicted_labels_tflite = "Liberalism" if predictions_lib[0][0] > 0.5 else "Conservative"
